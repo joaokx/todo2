@@ -1,150 +1,121 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Button from '../Button.jsx/button'
-import Fieldset from "../FielSet";
-const Useform= () => {
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Flex,
+  Button,
+  useDisclosure,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  useBreakpointValue,
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import ModalComp from "../template/ModalComp";
 
-    const [values, setValues] = useState({
-      firstname: "",
-      lastname: "",
-      email: "",
-      phone: "",
-    });
-    const navigate = useNavigate();
-  
-    const [errors, setErrors] = useState({
-      type: "",
-      message: "",
-    });
-  
-    const handleChange = (target, key) => {
-      const value = target.value;
-      setValues({
-        ...values,
-        [key]: value,
-      });
-      console.log(values);
-      validate(setErrors({ type: "success", message: "" }));
-    };
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-      if (!validate()) return;
-  
-      setValues({
-        firstname: values.firstname,
-        lastname: values.lastname,
-        email: values.email,
-        phone: values.phone,
-      });
-  
-      navigate("/dados-2");
-    };
-  
-    function validate() {
-      if (!values.firstname.trim()) {
-        return setErrors({
-          type: "error",
-          message: "Por favor, preencha o nome!",
-        });
-      }
-  
-      if (!values.lastname.trim()) {
-        return setErrors({
-          type: "error",
-          message: "Por favor, preencha o sobrenome!",
-        });
-      }
-  
-      if (!values.email) {
-        return setErrors({
-          type: "error",
-          message: "Por favor, preencha o email!",
-        });
-      } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-        return setErrors({
-          type: "error",
-          message: "Email inválido!",
-        });
-      }
-  
-      if (!values.phone) {
-        return setErrors({
-          type: "error",
-          message: "Por favor, preencha o telefone!",
-        });
-      } else if (values.phone.length < 10) {
-        return setErrors({
-          type: "error",
-          message: "Telefone inválido!",
-        });
-      }
-  
-      return true;
-    }
+const Userform = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [data, setData] = useState([]);
+  const [dataEdit, setDataEdit] = useState({});
 
-    return(
-      <div className="form">
-      <div className="col-12 col-md-6">
-      <div className="form-group">
-        <Fieldset
-          title="Nome:"
-          type="text"
-          name="firstname"
-          placeholder="Escreva seu nome"
-          value={values.firstname}
-          onchange={({ target }) => handleChange(target, "firstname")}
-        />
+  const isMobile = useBreakpointValue({
+    base: true,
+    lg: false,
+  });
 
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <div className="col-12 col-md-6">
-      <div className="form-group">
-        <Fieldset
-          title="Sobrenome:"
-          type="text"
-          name="lastname"
-          placeholder="Escreva seu sobrenome"
-          value={values.lastname}
-          onchange={({ target }) => handleChange(target, "lastname")}
+  useEffect(() => {
+    const db_costumer = localStorage.getItem("cad_cliente")
+      ? JSON.parse(localStorage.getItem("cad_cliente"))
+      : [];
+
+    setData(db_costumer);
+  }, [setData]);
+
+  const handleRemove = (email) => {
+    const newArray = data.filter((item) => item.email !== email);
+
+    setData(newArray);
+
+    localStorage.setItem("cad_cliente", JSON.stringify(newArray));
+  };
+
+  return (
+    <Flex
+      h="100vh"
+      align="center"
+      justify="center"
+      fontSize="20px"
+      fontFamily="poppins"
+    >
+      <Box maxW={800} w="100%" h="100vh" py={10} px={2}>
+        <Button colorScheme="blue" onClick={() => [setDataEdit({}), onOpen()]}>
+          NOVO CADASTRO
+        </Button>
+
+        <Box overflowY="auto" height="100%">
+          <Table mt="6">
+            <Thead>
+              <Tr>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                  Nome
+                </Th>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                  Sobrenome
+                </Th>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                  E-Mail
+                </Th>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                  telefone
+                </Th>
+                <Th p={0}></Th>
+                <Th p={0}></Th>
+                <Th p={0}></Th>
+                <Th p={0}></Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {data.map(({ name,lastname,email,tel}, index) => (
+                <Tr key={index} cursor="pointer " _hover={{ bg: "gray.100" }}>
+                  <Td maxW={isMobile ? 5 : 100}>{name}</Td>
+                  <Td maxW={isMobile ? 5 : 100}>{email}</Td>
+                  <Td maxW={isMobile ? 5 : 100}>{lastname}</Td>
+                  <Td maxW={isMobile ? 5 : 100}>{tel}</Td>
+                  <Td p={0}>
+                    <EditIcon
+                      fontSize={20}
+                      onClick={() => [
+                        setDataEdit({ name,lastname,tel, email, index }),
+                        onOpen(),
+                      ]}
+                    />
+                  </Td>
+                  <Td p={0}>
+                    <DeleteIcon
+                      fontSize={20}
+                      onClick={() => handleRemove(email)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </Box>
+      {isOpen && (
+        <ModalComp
+          isOpen={isOpen}
+          onClose={onClose}
+          data={data}
+          setData={setData}
+          dataEdit={dataEdit}
+          setDataEdit={setDataEdit}
         />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <div className="col-12 col-md-6">
-      <div className="form-group">
-        <Fieldset
-          title="Email:"
-          type="text"
-          name="email"
-          placeholder="Escreva seu email"
-          value={values.email}
-          onchange={({ target }) => handleChange(target, "email")}
-        />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <div className="col-12 col-md-6">
-      <div className="form-group">
-        <Fieldset
-          title="Telefone:"
-          type="telephone"
-          name="phone"
-          placeholder="Escreva seu telefone"
-          value={values.phone}
-          onchange={({ target }) => handleChange(target, "phone")}
-        />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <Button text="Próximo" onclick={handleSubmit} />
-    </div>
-    )
-}
-export default Useform 
+      )}
+    </Flex>
+  );
+};
+
+export default Userform;

@@ -8,7 +8,7 @@ import { NotificationContainer,  } from 'react-notifications'
 import Logo from '../components/template/Logo'
 import Nav from '../components/template/Nav'
 import Routes from './Routes'
-
+import Main from '../components/template/Main'
 
 export default props =>
     <HashRouter>
@@ -17,6 +17,6 @@ export default props =>
             <Nav />
             <Routes />
             <NotificationContainer />
-
+            
         </div>
     </HashRouter>

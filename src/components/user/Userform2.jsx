@@ -1,123 +1,118 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Button from '../Button.jsx/button'
-import Fieldset from "../FielSet";
-const Useform2= () => {
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Flex,
+  Button,
+  useDisclosure,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  useBreakpointValue,
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import ModalComp from "../template/ModalComp2";
+import Header from "../template/Header";
+const Userform2 = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [data, setData] = useState([]);
+  const [dataEdit, setDataEdit] = useState({});
 
-    const [values, setValues] = useState({
-        cep: "",
-        address: "",
-        complement: "",
-      });
-      const navigate = useNavigate();
-    
-      const [errors, setErrors] = useState({
-        type: "",
-        message: "",
-      });
-    
-      const handleChange = (target, key) => {
-        const value = target.value;
-        setValues({
-          ...values,
-          [key]: value,
-        });
-        console.log(values);
-        validate(setErrors({ type: "success", message: "" }));
-      };
-    
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-    
-        if (!validate()) return;
-    
-        setValues({
-          cep: values.cep,
-          address: values.address,
-          complement: values.complement,
-        });
-    
-        console.log(values);
-        console.log(errors);
-    
-        navigate("/dados-finalizar");
-      };
-    
-      function validate() {
-        if (!values.cep.trim()) {
-          return setErrors({
-            type: "error",
-            message: "Por favor, preencha o CEP!",
-          });
-        } else if (values.cep.length === 7) {
-          return setErrors({
-            type: "error",
-            message: "CEP inválido!",
-          });
-        }
-    
-        if (!values.address.trim()) {
-          return setErrors({
-            type: "error",
-            message: "Por favor, preencha o endereço!",
-          });
-        }
-    
-        if (!values.complement) {
-          return setErrors({
-            type: "error",
-            message: "Por favor, preencha o complemento!",
-          });
-        }
-    
-        return true;
-      }
+  const isMobile = useBreakpointValue({
+    base: true,
+    lg: false,
+  });
 
-    return(
-        <div className="form">
-        <div className="col-12 col-md-6">
-        <div className="form-group">
-        <Fieldset
-          title="CEP:"
-          type="number"
-          name="cep"
-          placeholder="Escreva seu CEP"
-          value={values.cep}
-          onchange={({ target }) => handleChange(target, "cep")}
+  useEffect(() => {
+    const db_costumer = localStorage.getItem("cad_cliente")
+      ? JSON.parse(localStorage.getItem("cad_cliente"))
+      : [];
+
+    setData(db_costumer);
+  }, [setData]);
+
+  const handleRemove = (cep) => {
+    const newArray = data.filter((item) => item.cep !== cep);
+
+    setData(newArray);
+
+    localStorage.setItem("cad_cliente", JSON.stringify(newArray));
+  };
+
+  return (
+    
+    <Flex
+      h="100vh"
+      align="center"
+      justify="center"
+      fontSize="20px"
+      fontFamily="poppins"
+    >
+      <Box maxW={800} w="100%" h="100vh" py={10} px={2}>
+        <Button colorScheme="blue" onClick={() => [setDataEdit({}), onOpen()]}>
+          NOVO CADASTRO
+        </Button>
+
+        <Box overflowY="auto" height="100%">
+          <Table mt="6">
+            <Thead>
+              <Tr>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+              CEP
+                </Th>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                 Endereço 1
+                </Th>
+                <Th maxW={isMobile ? 5 : 100} fontSize="20px">
+                  Endereço 2
+                </Th>
+              
+                <Th p={0}></Th>
+                <Th p={0}></Th>
+                <Th p={0}></Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {data.map(({ cep, endereco1,endereco2}, index) => (
+                <Tr key={index} cursor="pointer " _hover={{ bg: "gray.100" }}>
+                  <Td maxW={isMobile ? 5 : 100}>{cep}</Td>
+                  <Td maxW={isMobile ? 5 : 100}> {endereco1}</Td>
+                  <Td maxW={isMobile ? 5 : 100}>{endereco2}</Td>
+                  <Td p={0}>
+                    <EditIcon
+                      fontSize={20}
+                      onClick={() => [
+                        setDataEdit({ cep, endereco1,endereco2, index }),
+                        onOpen(),
+                      ]}
+                    />
+                  </Td>
+                  <Td p={0}>
+                    <DeleteIcon
+                      fontSize={20}
+                      onClick={() => handleRemove(cep)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </Box>
+      {isOpen && (
+        <ModalComp
+          isOpen={isOpen}
+          onClose={onClose}
+          data={data}
+          setData={setData}
+          dataEdit={dataEdit}
+          setDataEdit={setDataEdit}
         />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <div className="col-12 col-md-6">
-        <div className="form-group">
-        <Fieldset
-          title="Endereço:"
-          type="text"
-          name="address"
-          placeholder="Escreva seu endereço"
-          value={values.address}
-          onchange={({ target }) => handleChange(target, "address")}
-        />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-      </div>
-      <hr/>
-      <div className="col-12 col-md-6">
-        <Fieldset
-          title="Complemento:"
-          type="text"
-          name="complement"
-          placeholder="Escreva o complemento"
-          value={values.complement}
-          onchange={({ target }) => handleChange(target, "complement")}
-        />
-        {errors.type === "error" && <p>{errors.message}</p>}
-      </div>
-   
-      <hr/>
-      <Button text="Próximo" onclick={handleSubmit}/>
-    </div>
-    )
-}
-export default Useform2
+      )}
+    </Flex>
+  );
+};
+
+export default Userform2;
